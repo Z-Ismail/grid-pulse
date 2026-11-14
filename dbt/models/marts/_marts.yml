@@ -1,0 +1,17 @@
+version: 2
+
+models:
+  - name: fct_carbon_intensity_daily
+    description: >
+      One row per UTC day. Average/min/max carbon intensity and National Grid
+      forecast error (MAE and bias, gCO2/kWh). Recomputes the last
+      `lookback_days` (default 3) on each run to absorb late revisions.
+    columns:
+      - name: day
+        tests: [unique, not_null]
+      - name: slots
+        description: Half-hour slots present that day; 48 when complete (UTC days are always 48).
+      - name: forecast_mae_gco2_kwh
+        description: Mean absolute error of forecast vs actual, where actual exists.
+      - name: forecast_bias_gco2_kwh
+        description: Mean (forecast - actual). Positive = forecast too high.
