@@ -3,7 +3,7 @@
 import logging
 import random
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import requests
 
@@ -12,6 +12,20 @@ log = logging.getLogger(__name__)
 API = "https://api.carbonintensity.org.uk"
 MAX_WINDOW = timedelta(days=14)
 TS_FORMAT = "%Y-%m-%dT%H:%MZ"
+
+
+def _parse_utc(ts: str) -> datetime:
+    """Parse an API timestamp as a timezone-AWARE UTC datetime.
+
+    The trailing 'Z' means UTC. A naive datetime would later be interpreted in the
+    machine's local timezone (Europe/London), shifting every BST slot by an hour.
+    """
+    return datetime.strptime(ts, TS_FORMAT).replace(tzinfo=timezone.utc)
+
+
+def _require_utc(dt: datetime, name: str) -> None:
+    if dt.tzinfo is None or dt.utcoffset() != timedelta(0):
+        raise ValueError(f"{name} must be timezone-aware UTC, got {dt!r}")
 
 MAX_ATTEMPTS = 4
 BASE_DELAY_S = 1.0
@@ -58,6 +72,8 @@ def _get_with_retries(url: str) -> requests.Response:
 
 def fetch_intensity(start: datetime, end: datetime) -> list[dict]:
     """Return half-hourly intensity for slots with start <= period_start < end (UTC)."""
+    _require_utc(start, "start")
+    _require_utc(end, "end")
     if end <= start:
         raise ValueError("end must be after start")
     if end - start > MAX_WINDOW:
@@ -68,7 +84,7 @@ def fetch_intensity(start: datetime, end: datetime) -> list[dict]:
 
     rows = []
     for item in response.json().get("data", []):
-        period_start = datetime.strptime(item["from"], TS_FORMAT)
+        period_start = _parse_utc(item["from"])
         # API returns slots whose END falls in [from, to], so it includes one extra
         # slot before our start. Half-open filter on period_start removes it.
         if not (start <= period_start < end):
@@ -77,7 +93,7 @@ def fetch_intensity(start: datetime, end: datetime) -> list[dict]:
         rows.append(
             {
                 "period_start": period_start,
-                "period_end": datetime.strptime(item["to"], TS_FORMAT),
+                "period_end": _parse_utc(item["to"]),
                 "forecast": intensity.get("forecast"),
                 "actual": intensity.get("actual"),
                 "index": intensity.get("index"),
@@ -88,7 +104,7 @@ def fetch_intensity(start: datetime, end: datetime) -> list[dict]:
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
-    s = datetime(2026, 11, 13, 0, 0)
+    s = datetime(2026, 11, 13, 0, 0, tzinfo=timezone.utc)
     rows = fetch_intensity(s, s + timedelta(hours=2))
     print(len(rows))
     for r in rows:

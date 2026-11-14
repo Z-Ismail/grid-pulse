@@ -65,7 +65,7 @@ def load(start: datetime, end: datetime) -> int:
 
 
 def _parse_day(s: str) -> datetime:
-    return datetime.strptime(s, "%Y-%m-%d")
+    return datetime.strptime(s, "%Y-%m-%d").replace(tzinfo=timezone.utc)
 
 
 if __name__ == "__main__":
