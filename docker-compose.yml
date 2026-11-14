@@ -1,0 +1,27 @@
+# Local development only. These credentials are not for any deployed environment.
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    container_name: grid-pulse-clickhouse
+    ports:
+      - "8123:8123"   # HTTP interface
+      - "9000:9000"   # native protocol
+    environment:
+      CLICKHOUSE_USER: grid
+      CLICKHOUSE_PASSWORD: grid
+      CLICKHOUSE_DB: grid_pulse
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    volumes:
+      - ch_data:/var/lib/clickhouse
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8123/ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  ch_data:
