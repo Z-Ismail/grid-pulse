@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  python:
+    name: Lint + unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt ruff
+      - name: Lint
+        run: ruff check .
+      - name: Unit tests (no network, no database)
+        run: python -m pytest -v
+
+  dbt:
+    name: dbt build against ClickHouse
+    runs-on: ubuntu-latest
+    services:
+      clickhouse:
+        image: clickhouse/clickhouse-server:24.8
+        env:
+          CLICKHOUSE_USER: grid
+          CLICKHOUSE_PASSWORD: grid
+          CLICKHOUSE_DB: grid_pulse
+          CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+        ports: ["8123:8123"]
+        options: >-
+          --health-cmd "wget --spider -q http://localhost:8123/ping"
+          --health-interval 5s --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Create tables
+        run: |
+          python - <<'PY'
+          import clickhouse_connect, re
+          c = clickhouse_connect.get_client(host="localhost", username="grid", password="grid")
+          sql = open("clickhouse/schema/001_carbon_intensity.sql").read()
+          sql = re.sub(r"--.*", "", sql)
+          for stmt in [s.strip() for s in sql.split(";") if s.strip()]:
+              c.command(stmt)
+          PY
+      - name: Load a small real window (2 days)
+        run: python -m ingest.batch.load_carbon_intensity --start 2026-11-01 --end 2026-11-03
+      - name: dbt build (models + tests)
+        run: dbt build --project-dir dbt --profiles-dir dbt

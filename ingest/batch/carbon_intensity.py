@@ -3,7 +3,7 @@
 import logging
 import random
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import requests
 
@@ -20,7 +20,7 @@ def _parse_utc(ts: str) -> datetime:
     The trailing 'Z' means UTC. A naive datetime would later be interpreted in the
     machine's local timezone (Europe/London), shifting every BST slot by an hour.
     """
-    return datetime.strptime(ts, TS_FORMAT).replace(tzinfo=timezone.utc)
+    return datetime.strptime(ts, TS_FORMAT).replace(tzinfo=UTC)
 
 
 def _require_utc(dt: datetime, name: str) -> None:
@@ -104,7 +104,7 @@ def fetch_intensity(start: datetime, end: datetime) -> list[dict]:
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
-    s = datetime(2026, 11, 13, 0, 0, tzinfo=timezone.utc)
+    s = datetime(2026, 11, 13, 0, 0, tzinfo=UTC)
     rows = fetch_intensity(s, s + timedelta(hours=2))
     print(len(rows))
     for r in rows:

@@ -15,7 +15,7 @@ Idempotency:
 import argparse
 import logging
 import os
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import clickhouse_connect
 from dotenv import load_dotenv
@@ -52,9 +52,12 @@ def load(start: datetime, end: datetime) -> int:
     total = 0
     for a, b in chunk_windows(start, end):
         rows = fetch_intensity(a, b)
-        ingested_at = datetime.now(timezone.utc)  # one version stamp per chunk
+        ingested_at = datetime.now(UTC)  # one version stamp per chunk
         data = [
-            [r["period_start"], r["period_end"], r["forecast"], r["actual"], r["index"], ingested_at]
+            [
+                r["period_start"], r["period_end"], r["forecast"],
+                r["actual"], r["index"], ingested_at,
+            ]
             for r in rows
         ]
         if data:
@@ -65,7 +68,7 @@ def load(start: datetime, end: datetime) -> int:
 
 
 def _parse_day(s: str) -> datetime:
-    return datetime.strptime(s, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+    return datetime.strptime(s, "%Y-%m-%d").replace(tzinfo=UTC)
 
 
 if __name__ == "__main__":
