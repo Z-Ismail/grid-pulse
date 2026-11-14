@@ -1,3 +1,4 @@
 requests>=2.32
 clickhouse-connect>=0.8
 python-dotenv>=1.0
+pytest>=8.0
