@@ -1,0 +1,17 @@
+version: 2
+
+models:
+  - name: stg_carbon_intensity
+    description: Deduplicated half-hourly GB carbon intensity (UTC).
+    columns:
+      - name: period_start
+        description: Start of the half-hour slot, UTC.
+        tests:
+          - unique
+          - not_null
+      - name: forecast_gco2_kwh
+        tests:
+          - not_null
+    tests:
+      - no_missing_half_hours:
+          column_name: period_start

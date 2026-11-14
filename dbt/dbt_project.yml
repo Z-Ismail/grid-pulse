@@ -1,0 +1,17 @@
+name: grid_pulse
+version: "1.0.0"
+config-version: 2
+profile: grid_pulse
+
+model-paths: ["models"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+models:
+  grid_pulse:
+    staging:
+      +materialized: view
+    marts:
+      +materialized: table

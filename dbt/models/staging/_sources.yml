@@ -1,0 +1,11 @@
+version: 2
+
+sources:
+  - name: grid_pulse
+    schema: grid_pulse
+    description: Raw tables written by the Python loader.
+    tables:
+      - name: carbon_intensity_latest
+        description: One row per half-hour slot (ReplacingMergeTree; may hold unmerged duplicates).
+      - name: raw_carbon_intensity
+        description: Append-only history of every fetched version.
