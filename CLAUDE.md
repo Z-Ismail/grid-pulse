@@ -73,9 +73,12 @@ When the task is done and the Check command passes, ship it without waiting for 
 2. Open a PR against `main` with `gh pr create --base main`: conventional-commit title, and a
    plain-English body with what changed, why, how it was tested (commands and results) and anything
    left or risky. No attribution lines, no secrets, nothing from `docs/private/`.
-3. Wait for CI: `gh pr checks --watch`. If a check fails, fix it, push, and wait again. Merge only when
-   every check is green.
-4. Merge with `gh pr merge --squash`, then delete the remote branch: `git push origin --delete <branch>`.
+3. Wait for CI by polling, not `--watch`: run `gh pr checks` (no pipe to `tail`) every 30 seconds, for at
+   most 15 minutes. If a check fails, fix it, push, and wait again. If a check still shows in progress
+   5 minutes after its steps have finished, re-run that job once (`gh run rerun <run-id> --job <job-id>`).
+   Merge only when every check is green; still pending after 15 minutes, stop and report.
+4. If `gh pr view --json state` already says MERGED, skip the merge and just report it. Otherwise merge
+   with `gh pr merge --squash`, then delete the remote branch: `git push origin --delete <branch>`.
 5. Report the PR link, what merged and which checks passed. Zak archives the workspace.
 
 Stop and ask Zak instead of shipping when the change: deletes data or files outside the task, changes ClickHouse table DDL or requires truncating or reloading data,
