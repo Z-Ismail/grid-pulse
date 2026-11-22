@@ -62,4 +62,20 @@ against a ClickHouse service.
 - Ports: ClickHouse uses fixed ports and a fixed container name (`grid-pulse-clickhouse`), so only
   one workspace runs Docker at a time.
 - Commit in small, tested steps, authored as Zak Ismail, with no co-author or attribution lines.
-  Don't push or open pull requests: Zak reviews the diff and pushes himself.
+
+## Shipping (fully automatic, Zak's choice)
+
+When the task is done and the Check command passes, ship it without waiting for Zak:
+
+1. Push the branch: `git push -u origin HEAD`. Never push to `main` directly. Never force-push.
+2. Open a PR against `main` with `gh pr create --base main`: conventional-commit title, and a
+   plain-English body with what changed, why, how it was tested (commands and results) and anything
+   left or risky. No attribution lines, no secrets, nothing from `docs/private/`.
+3. Wait for CI: `gh pr checks --watch`. If a check fails, fix it, push, and wait again. Merge only when
+   every check is green.
+4. Merge with `gh pr merge --squash`, then delete the remote branch: `git push origin --delete <branch>`.
+5. Report the PR link, what merged and which checks passed. Zak archives the workspace.
+
+Stop and ask Zak instead of shipping when the change: deletes data or files outside the task, changes ClickHouse table DDL or requires truncating or reloading data,
+adds a paid service or a new production dependency, or Review finds anything Critical. If Check or CI
+still fails after two fix attempts, stop and report rather than merging.
