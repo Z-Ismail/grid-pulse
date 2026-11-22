@@ -22,3 +22,10 @@ dbt/logs/
 
 # local data
 data/
+
+# Conductor workspaces and local Claude Code settings
+.context/
+.claude/settings.local.json
+
+# The secrets rule above ignores every settings.json; shared Claude Code settings are safe to commit
+!.claude/settings.json
