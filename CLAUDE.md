@@ -62,6 +62,8 @@ against a ClickHouse service.
 - Ports: ClickHouse uses fixed ports and a fixed container name (`grid-pulse-clickhouse`), so only
   one workspace runs Docker at a time.
 - Commit in small, tested steps, authored as Zak Ismail, with no co-author or attribution lines.
+- When you finish a task, update the Roadmap in README.md (and any status in this file) in the same PR: tick off what is done, add any follow-ups
+  you found, keep it in priority order. This list is how Zak decides what to do next.
 
 ## Shipping (fully automatic, Zak's choice)
 
