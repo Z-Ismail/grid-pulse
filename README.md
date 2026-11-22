@@ -2,7 +2,7 @@
 
 A GB electricity data platform. It ingests half-hourly carbon intensity from the National Grid (NESO) Carbon Intensity API into ClickHouse, keeps a full version history, and models it with dbt into a daily mart that tracks how accurate the national forecast is.
 
-Streaming generation data from Elexon IRIS, Airflow orchestration and Terraform-managed AWS landing are in progress (see [Roadmap](#roadmap)).
+Planned next, not built yet: streaming generation data from Elexon IRIS, Airflow orchestration and Terraform-managed AWS landing (see [Roadmap](#roadmap)).
 
 ## Architecture
 
@@ -84,6 +84,6 @@ tests/             unit tests incl. DST regression and retry behaviour
 - [ ] **Streaming:** Elexon IRIS consumer (generation by fuel, demand) → ClickHouse, as a long-running service with at-least-once delivery and idempotent writes
 - [ ] **Orchestration:** Airflow DAG (load → dbt build → freshness check) with a custom operator
 - [ ] **Infrastructure:** Terraform for S3 Parquet landing + least-privilege IAM
-- [ ] **CI:** GitHub Actions running ruff, pytest and dbt build
 - [ ] **SLAs:** freshness and completeness targets per data product, with alerting
 - [ ] Join intensity with generation mix to test the forecast-error hypothesis
+- [x] **CI:** GitHub Actions running ruff, pytest, dbt build and a gitleaks secret scan
